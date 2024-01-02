@@ -1,4 +1,7 @@
 import CloudFlare
+import logging
+
+logging.basicConfig(filename='dns_update_log.txt', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 api_token = input("Enter your Cloudflare API token: ")
 domain_name = input("Enter the domain name for which you want to update the DNS record: ")
@@ -12,9 +15,11 @@ try:
         raise Exception(f"No zone found for {domain_name}")
     zone_id = zones[0]["id"]
 except CloudFlare.exceptions.CloudFlareAPIError as e:
+    logging.error(f"CloudFlare API error: {e}")
     print(f"CloudFlare API error: {e}")
     exit()
 except Exception as e:
+    logging.error(f"Error: {e}")
     print(f"Error: {e}")
     exit()
 
@@ -24,16 +29,20 @@ try:
         raise Exception(f"No A record found for {domain_name}")
     record_id = records[0]["id"]
 except CloudFlare.exceptions.CloudFlareAPIError as e:
+    logging.error(f"CloudFlare API error: {e}")
     print(f"CloudFlare API error: {e}")
     exit()
 except Exception as e:
+    logging.error(f"Error: {e}")
     print(f"Error: {e}")
     exit()
 
 try:
     data = {"type": "A", "name": domain_name, "content": new_ip}
     cf.zones.dns_records.put(zone_id, record_id, data=data)
+    logging.info(f"Successfully updated the IP address of {domain_name} to {new_ip}")
     print(f"Successfully updated the IP address of {domain_name} to {new_ip}")
 except CloudFlare.exceptions.CloudFlareAPIError as e:
+    logging.error(f"CloudFlare API error: {e}")
     print(f"CloudFlare API error: {e}")
     exit()
